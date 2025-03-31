@@ -34,8 +34,12 @@ jobs:
         run: |
           # Switch to the release branch
           git fetch origin
-          git checkout release || git checkout --orphan release  # Create release branch if it doesn't exist
+          git checkout --orphan release  # Create release branch if it doesn't exist
           git pull origin release || true  # Pull from remote if exists
+
+          # Configure Git identity for committing
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
           # Commit binaries to the release branch
           git add release/*
