@@ -18,14 +18,6 @@ jobs:
         with:
           go-version: '1.18'  # Set the Go version you're using
 
-      - name: Cache Go modules
-        uses: actions/cache@v2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-
       - name: Build Go binaries for multiple OS and Arch
         run: |
           mkdir -p release
