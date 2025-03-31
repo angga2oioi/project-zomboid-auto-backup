@@ -1,0 +1,51 @@
+name: Build and Release Go Binary
+
+on:
+  push:
+    branches:
+      - main  # Trigger when changes are pushed to the main branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # Use the latest Ubuntu runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: '1.18'  # Set the Go version you're using
+
+      - name: Cache Go modules
+        uses: actions/cache@v2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Build Go binaries for multiple OS and Arch
+        run: |
+          mkdir -p release
+          # Build for Linux
+          GOOS=linux GOARCH=amd64 go build -o release/PZBackup-linux-amd64
+          GOOS=linux GOARCH=arm64 go build -o release/PZBackup-linux-arm64
+          # Build for macOS
+          GOOS=darwin GOARCH=amd64 go build -o release/PZBackup-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -o release/PZBackup-darwin-arm64
+          # Build for Windows
+          GOOS=windows GOARCH=amd64 go build -o release/PZBackup-windows-amd64.exe
+          
+      - name: Create release branch and commit binaries
+        run: |
+          # Switch to the release branch
+          git fetch origin
+          git checkout release || git checkout --orphan release  # Create release branch if it doesn't exist
+          git pull origin release || true  # Pull from remote if exists
+
+          # Commit binaries to the release branch
+          git add release/*
+          git commit -m "Release new version"
+          git push origin release  # Push to the release branch
