@@ -21,15 +21,18 @@ jobs:
 
       - name: Build Go binaries for multiple OS and Arch
         run: |
-          mkdir -p release
           # Build for Linux
-          GOOS=linux GOARCH=amd64 go build -o release/PZBackup-linux-amd64
-          GOOS=linux GOARCH=arm64 go build -o release/PZBackup-linux-arm64
+          GOOS=linux GOARCH=amd64 go build -o PZBackup-linux-amd64
+          GOOS=linux GOARCH=arm64 go build -o PZBackup-linux-arm64
           # Build for macOS
-          GOOS=darwin GOARCH=amd64 go build -o release/PZBackup-darwin-amd64
-          GOOS=darwin GOARCH=arm64 go build -o release/PZBackup-darwin-arm64
+          GOOS=darwin GOARCH=amd64 go build -o PZBackup-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -o PZBackup-darwin-arm64
           # Build for Windows
-          GOOS=windows GOARCH=amd64 go build -o release/PZBackup-windows-amd64.exe
+          GOOS=windows GOARCH=amd64 go build -o PZBackup-windows-amd64.exe
+          
+          # Move binaries to a safe location outside the repo
+          mkdir -p /tmp/binaries
+          cp PZBackup-* /tmp/binaries/
 
       - name: Create clean release branch
         run: |
@@ -42,8 +45,8 @@ jobs:
           # Remove all files in the working directory
           rm -rf ./* ./.* 2>/dev/null || true
           
-          # Copy only the binary files from the release folder
-          cp -r release/* .
+          # Copy only the binary files from the safe location
+          cp /tmp/binaries/* .
           
           # Stage only the binary files
           git add PZBackup-*
