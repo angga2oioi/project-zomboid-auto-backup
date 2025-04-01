@@ -21,14 +21,15 @@ jobs:
 
       - name: Build Go binaries for multiple OS and Arch
         run: |
+          mkdir -p release
           # Build for Linux
-          GOOS=linux GOARCH=amd64 go build -o PZBackup-linux-amd64
-          GOOS=linux GOARCH=arm64 go build -o PZBackup-linux-arm64
+          GOOS=linux GOARCH=amd64 go build -o release/PZBackup-linux-amd64
+          GOOS=linux GOARCH=arm64 go build -o release/PZBackup-linux-arm64
           # Build for macOS
-          GOOS=darwin GOARCH=amd64 go build -o PZBackup-darwin-amd64
-          GOOS=darwin GOARCH=arm64 go build -o PZBackup-darwin-arm64
+          GOOS=darwin GOARCH=amd64 go build -o release/PZBackup-darwin-amd64
+          GOOS=darwin GOARCH=arm64 go build -o release/PZBackup-darwin-arm64
           # Build for Windows
-          GOOS=windows GOARCH=amd64 go build -o PZBackup-windows-amd64.exe
+          GOOS=windows GOARCH=amd64 go build -o release/PZBackup-windows-amd64.exe
 
       - name: Create GitHub Release
         id: create_release
@@ -45,11 +46,14 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for file in PZBackup-*; do
+          UPLOAD_URL="${{ steps.create_release.outputs.upload_url }}"
+          UPLOAD_URL="${UPLOAD_URL%\{*}"  # Remove {?name,label} part from URL
+          
+          for file in release/*; do
             echo "Uploading $file..."
             curl -X POST \
               -H "Authorization: token $GITHUB_TOKEN" \
               -H "Content-Type: application/octet-stream" \
               --data-binary @"$file" \
-              "$(jq -r '.upload_url' <<< '${{ steps.create_release.outputs.upload_url }}' | sed -e 's/{?name,label}//')?name=$(basename "$file")"
+              "$UPLOAD_URL?name=$(basename "$file")"
           done
