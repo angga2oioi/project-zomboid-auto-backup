@@ -44,7 +44,6 @@ jobs:
         run: |
           # Remove all non-binary files in the release branch to avoid committing source code
           find . -not -path "./.git*" -not -name ".git" -not -name "PZBackup*" -delete
-          git reset --hard HEAD  # Reset to the last commit to preserve only the branch structure
 
       - name: Commit and Push release binaries
         env:
