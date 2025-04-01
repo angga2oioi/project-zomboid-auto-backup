@@ -43,8 +43,8 @@ jobs:
       - name: Clean repository (exclude all non-binary files)
         run: |
           # Remove all non-binary files in the release branch to avoid committing source code
-          git reset --hard HEAD  # Reset to the last commit to preserve only the branch structure
           git rm -rf .  # Remove all files from the working directory
+          git reset --hard HEAD  # Reset to the last commit to preserve only the branch structure
 
       - name: Copy binaries to repository
         run: |
