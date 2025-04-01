@@ -21,7 +21,6 @@ jobs:
 
       - name: Build Go binaries for multiple OS and Arch
         run: |
-          mkdir -p release
           # Build for Linux
           GOOS=linux GOARCH=amd64 go build -o PZBackup-linux-amd64
           GOOS=linux GOARCH=arm64 go build -o PZBackup-linux-arm64
@@ -31,29 +30,26 @@ jobs:
           # Build for Windows
           GOOS=windows GOARCH=amd64 go build -o PZBackup-windows-amd64.exe
 
-      - name: Checkout 'release' branch or create it
-        run: |
-          git fetch origin
-          git checkout release || git checkout -b release
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: Release v1.0.${{ github.run_number }}
+          draft: false
+          prerelease: false
 
-      - name: Pull the latest changes from 'release' branch
-        run: |
-          git pull origin release || echo "No remote 'release' branch, creating one"
-
-      - name: Clean repository (exclude all non-binary files)
-        run: |
-          # Remove all non-binary files in the release branch to avoid committing source code
-          find . -not -path "./.git*" -not -name ".git" -not -name "PZBackup*" -delete
-
-      - name: Commit and Push release binaries
+      - name: Upload All Binaries to Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Configure Git user for commit
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
-          
-          git add .
-          git commit -m "Release new version"
-          # Push the release branch to the remote
-          git push origin release --force
+          for file in PZBackup-*; do
+            echo "Uploading $file..."
+            curl -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary @"$file" \
+              "$(jq -r '.upload_url' <<< '${{ steps.create_release.outputs.upload_url }}' | sed -e 's/{?name,label}//')?name=$(basename "$file")"
+          done
