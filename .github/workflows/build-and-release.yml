@@ -56,5 +56,4 @@ jobs:
           git add PZBackup-*
           git commit -m "Release new version"
           # Push the release branch to the remote
-          git pull origin release 
           git push origin release --force
