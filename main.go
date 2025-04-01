@@ -36,11 +36,25 @@ func loadConfig() (Config, error) {
 
 // Save configuration to a file
 func saveConfig(config Config) error {
+	dir := "config"
+	err := os.MkdirAll(dir, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to create directory: %w", err)
+	}
+
 	data, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to marshal JSON: %w", err)
 	}
-	return ioutil.WriteFile("config/config.json", data, 0644)
+
+	filePath := dir + "/config.json"
+
+	err = os.WriteFile(filePath, data, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return nil
 }
 
 func main() {
@@ -98,19 +112,32 @@ func main() {
 }
 
 func clearBackupFolder(backupFolder string) {
-	// Clear the backup folder before each backup
+	// Ensure the backup directory exists, create it if necessary
+	err := os.MkdirAll(backupFolder, 0755)
+	if err != nil {
+		fmt.Println("Error creating backup folder:", err)
+		return
+	}
+
+	// Read the directory contents
 	dir, err := os.ReadDir(backupFolder)
 	if err != nil {
 		fmt.Println("Error reading backup folder:", err)
 		return
 	}
 
+	// Clear the directory contents
 	for _, entry := range dir {
 		entryPath := filepath.Join(backupFolder, entry.Name())
-		os.RemoveAll(entryPath)
+		err := os.RemoveAll(entryPath)
+		if err != nil {
+			fmt.Println("Error removing file or directory:", err)
+		}
 	}
 	fmt.Println("Backup folder cleared.")
 }
+
+
 
 func backup(saveFolder, backupFolder string) {
 	// Create timestamped backup folder inside user-defined backup location
