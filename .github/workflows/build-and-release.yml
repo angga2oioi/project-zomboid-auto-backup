@@ -31,10 +31,11 @@ jobs:
           # Build for Windows
           GOOS=windows GOARCH=amd64 go build -o release/PZBackup-windows-amd64.exe
 
-      - name: Checkout 'release' branch
-        run: |
-          git fetch origin
-          git checkout release || git checkout -b release
+          - name: Checkout 'release' branch or create it
+          run: |
+            git fetch origin
+            # If 'release' branch doesn't exist locally, create it
+            git checkout release || git checkout -b release
   
       - name: Pull the latest changes from 'release' branch
         run: |
