@@ -37,7 +37,9 @@ jobs:
           git checkout release || git checkout -b release
 
       - name: Commit and Push release binaries
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git add release/PZBackup-*
           git commit -m "Release new version"
-          git push https://x-access-token:${{ secrets.ZOMBOID_ACTION }}@github.com/angga2oioi/project-zomboid-auto-backup.git release
+          git push https://x-access-token:${ GITHUB_TOKEN }@github.com/${{ github.repository }}.git release
