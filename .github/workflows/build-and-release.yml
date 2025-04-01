@@ -33,12 +33,13 @@ jobs:
 
       - name: Checkout 'release' branch
         run: |
-          git fetch origin release || git checkout -b release  # Fetch or create the release branch if it doesn't exist
+          git fetch origin
+          git checkout release || git checkout -b release
 
       - name: Commit and Push release binaries
         env:
           GITHUB_TOKEN: ${{ secrets.ZOMBOID_ACTION }} 
         run: |
-          git add release/*
+          git add release/PZBackup-*
           git commit -m "Release new version"
           git push https://x-access-token:${{ GITHUB_TOKEN }}@github.com/angga2oioi/project-zomboid-auto-backup.git release
